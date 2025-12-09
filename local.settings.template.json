@@ -1,0 +1,12 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "PRODUCT_UPDATED_BASE_URL": "",
+    "PRODUCT_UPDATED_KEY": "",
+    "OAUTH2_JWKS_URI": "",
+    "OAUTH2_ISSUER": "",
+    "OAUTH2_AUDIENCE": ""
+  },
+  "ConnectionStrings": {}
+}
