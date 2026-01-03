@@ -1,0 +1,6 @@
+{
+  "id": "loan-123",
+  "deviceId": "dev-001",
+  "deviceName": "Device A",
+  "user": "user@example.com"
+}
