@@ -7,6 +7,7 @@ export type CreateLoanRequest = {
   id: string;
   deviceId: string;
   deviceName: string;
+  user: string;
 };
 
 /**
@@ -65,6 +66,7 @@ export async function createLoan(
     deviceName: req.deviceName,
     loanStartDate,
     loanDueDate,
+    user: req.user,
   });
 
   await repo.save(loan);

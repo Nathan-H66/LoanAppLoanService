@@ -8,6 +8,7 @@ type LoanDTO = {
   deviceName: string;
   loanStartDate: string; // ISO string
   loanDueDate: string; // ISO string
+  user: string;
 };
 
 type CosmosLoanRepoOptions = {
@@ -35,6 +36,7 @@ export class CosmosLoanRepo implements LoanRepo {
       deviceName: loan.deviceName,
       loanStartDate: loan.loanStartDate.toISOString(),
       loanDueDate: loan.loanDueDate.toISOString(),
+      user: loan.user,
     };
   }
 
@@ -45,6 +47,7 @@ export class CosmosLoanRepo implements LoanRepo {
       deviceName: dto.deviceName,
       loanStartDate: new Date(dto.loanStartDate),
       loanDueDate: new Date(dto.loanDueDate),
+      user: dto.user,
     };
   }
 
