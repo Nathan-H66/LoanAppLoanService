@@ -9,8 +9,8 @@
     "OAUTH2_AUDIENCE": "",
     "COSMOS_DB_ENDPOINT": "",
     "COSMOS_DB_KEY": "",
-    "COSMOS_DB_DATABASE_ID": "loans",
-    "COSMOS_DB_CONTAINER_ID": "loans"
+    "COSMOS_DB_DATABASE_ID": "",
+    "COSMOS_DB_CONTAINER_ID": ""
   },
   "ConnectionStrings": {}
 }

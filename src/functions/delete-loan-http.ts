@@ -1,11 +1,16 @@
+import { app, HttpRequest, HttpResponseInit } from '@azure/functions';
 import { deleteLoan } from '../app/delete-loan';
 import { CosmosLoanRepo } from '../infra/cosmos-loan-repo';
 
-export default async function (context: any, req: any) {
-  const id = req.params.id;
+const deleteLoanHandler = async (
+  request: HttpRequest
+): Promise<HttpResponseInit> => {
+  const id = request.params.get('id');
   if (!id) {
-    context.res = { status: 400, body: { error: 'Loan id is required.' } };
-    return;
+    return {
+      status: 400,
+      jsonBody: { success: false, message: 'Loan id is required.' },
+    };
   }
   try {
     const loanRepo = new CosmosLoanRepo({
@@ -15,8 +20,22 @@ export default async function (context: any, req: any) {
       containerId: process.env.COSMOS_DB_CONTAINER_ID || 'loans',
     });
     await deleteLoan(id, loanRepo);
-    context.res = { status: 204 };
-  } catch (err: any) {
-    context.res = { status: 500, body: { error: err.message } };
+    return { status: 204 };
+  } catch (error) {
+    return {
+      status: 500,
+      jsonBody: {
+        success: false,
+        message: 'Internal server error',
+        error: (error as Error).message,
+      },
+    };
   }
-}
+};
+
+app.http('deleteLoanHttp', {
+  methods: ['DELETE'],
+  authLevel: 'function',
+  route: 'loans/{id}',
+  handler: deleteLoanHandler,
+});
