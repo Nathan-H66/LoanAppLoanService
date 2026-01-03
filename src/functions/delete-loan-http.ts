@@ -5,7 +5,7 @@ import { CosmosLoanRepo } from '../infra/cosmos-loan-repo';
 const deleteLoanHandler = async (
   request: HttpRequest
 ): Promise<HttpResponseInit> => {
-  const id = request.params.get('id');
+  const id = request.params['id'];
   if (!id) {
     return {
       status: 400,
@@ -16,7 +16,7 @@ const deleteLoanHandler = async (
     const loanRepo = new CosmosLoanRepo({
       endpoint: process.env.COSMOS_DB_ENDPOINT!,
       key: process.env.COSMOS_DB_KEY!,
-      databaseId: process.env.COSMOS_DB_DATABASE_ID || 'loans',
+      databaseId: process.env.COSMOS_DB_DATABASE_ID || 'loans-db',
       containerId: process.env.COSMOS_DB_CONTAINER_ID || 'loans',
     });
     await deleteLoan(id, loanRepo);

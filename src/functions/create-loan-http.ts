@@ -41,7 +41,7 @@ const createLoanHandler = async (
     const loanRepo = new CosmosLoanRepo({
       endpoint: process.env.COSMOS_DB_ENDPOINT!,
       key: process.env.COSMOS_DB_KEY!,
-      databaseId: process.env.COSMOS_DB_DATABASE_ID || 'loans',
+      databaseId: process.env.COSMOS_DB_DATABASE_ID || 'loans-db',
       containerId: process.env.COSMOS_DB_CONTAINER_ID || 'loans',
     });
     const deviceRepo = new CosmosDeviceRepo();
