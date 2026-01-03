@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createLoan } from './create-loan';
 import type { AuthContext } from './auth-context';
+import type { Device, DeviceRepo } from '../domain/device-repo';
+
+const validDevice: Device = { id: 'dev-1', name: 'Device A', quantity: 1 };
+const makeDeviceRepo = (device: Device | null): DeviceRepo => ({
+  getDeviceById: vi.fn(() => Promise.resolve(device)),
+});
 
 type SavedLoan = any;
 type LoanRepo = {
@@ -32,11 +38,10 @@ describe('createLoan', () => {
       deviceName: 'Device A',
     };
 
-    const loan = await createLoan(
-      req,
-      fakeRepo as any,
-      { authenticated: true } as AuthContext
-    );
+    const deviceRepo = makeDeviceRepo(validDevice);
+    const loan = await createLoan(req, fakeRepo as any, deviceRepo, {
+      authenticated: true,
+    } as AuthContext);
 
     // repo.save should have been called once with the same loan object
     expect((fakeRepo.save as any).mock.calls.length).toBe(1);
@@ -63,42 +68,48 @@ describe('createLoan', () => {
   it('allows creation without auth context', async () => {
     const repo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
     const req = { id: 'x', deviceId: 'y', deviceName: 'z' };
-    await expect(createLoan(req, repo as any)).resolves.toHaveProperty(
-      'id',
-      'x'
-    );
+    const deviceRepo = makeDeviceRepo(validDevice);
+    await expect(
+      createLoan(req, repo as any, deviceRepo)
+    ).resolves.toHaveProperty('id', 'x');
   });
 
   it('throws when auth is provided but not authenticated', async () => {
     const repo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
     const req = { id: 'a', deviceId: 'b', deviceName: 'c' };
+    const deviceRepo = makeDeviceRepo(validDevice);
     await expect(
-      createLoan(req, repo as any, { authenticated: false } as AuthContext)
+      createLoan(req, repo as any, deviceRepo, {
+        authenticated: false,
+      } as AuthContext)
     ).rejects.toThrow('Not authenticated');
   });
 
   it('validates missing id', async () => {
     const repo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
     const req = { id: '', deviceId: 'b', deviceName: 'c' };
-    await expect(createLoan(req as any, repo as any)).rejects.toThrow(
-      'Loan id is required and must be a string.'
-    );
+    const deviceRepo = makeDeviceRepo(validDevice);
+    await expect(
+      createLoan(req as any, repo as any, deviceRepo)
+    ).rejects.toThrow('Loan id is required and must be a string.');
   });
 
   it('validates missing deviceId', async () => {
     const repo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
     const req = { id: 'id', deviceId: '' as any, deviceName: 'c' };
-    await expect(createLoan(req as any, repo as any)).rejects.toThrow(
-      'Device id is required and must be a string.'
-    );
+    const deviceRepo = makeDeviceRepo(validDevice);
+    await expect(
+      createLoan(req as any, repo as any, deviceRepo)
+    ).rejects.toThrow('Device id is required and must be a string.');
   });
 
   it('validates missing deviceName', async () => {
     const repo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
     const req = { id: 'id', deviceId: 'dev', deviceName: '' as any };
-    await expect(createLoan(req as any, repo as any)).rejects.toThrow(
-      'Device name is required and must be a string.'
-    );
+    const deviceRepo = makeDeviceRepo(validDevice);
+    await expect(
+      createLoan(req as any, repo as any, deviceRepo)
+    ).rejects.toThrow('Device name is required and must be a string.');
   });
 
   it('throws if computed loan dates are invalid (NaN)', async () => {
@@ -126,9 +137,10 @@ describe('createLoan', () => {
 
     const repo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
     const req = { id: 'id', deviceId: 'dev', deviceName: 'name' };
-    await expect(createLoan(req as any, repo as any)).rejects.toThrow(
-      'Computed loan dates are invalid.'
-    );
+    const deviceRepo = makeDeviceRepo(validDevice);
+    await expect(
+      createLoan(req as any, repo as any, deviceRepo)
+    ).rejects.toThrow('Computed loan dates are invalid.');
   });
 
   it('throws when computed due date is before start date', async () => {
@@ -166,8 +178,48 @@ describe('createLoan', () => {
 
     const repo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
     const req = { id: 'id', deviceId: 'dev', deviceName: 'name' };
-    await expect(createLoan(req as any, repo as any)).rejects.toThrow(
+    const deviceRepo = makeDeviceRepo(validDevice);
+    await expect(
+      createLoan(req as any, repo as any, deviceRepo)
+    ).rejects.toThrow(
       'Loan due date must be the same or after the start date.'
     );
+  });
+
+  it('creates a loan if device is available', async () => {
+    const fakeRepo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
+    const req = { id: 'loan-1', deviceId: 'dev-1', deviceName: 'Device A' };
+    const deviceRepo = makeDeviceRepo(validDevice);
+    const loan = await createLoan(req, fakeRepo as any, deviceRepo, {
+      authenticated: true,
+    } as AuthContext);
+    expect(loan.deviceId).toBe(req.deviceId);
+    expect(fakeRepo.save).toHaveBeenCalledWith(loan);
+  });
+
+  it('denies loan if device not found', async () => {
+    const fakeRepo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
+    const req = { id: 'loan-2', deviceId: 'dev-404', deviceName: 'Device B' };
+    const deviceRepo = makeDeviceRepo(null);
+    await expect(
+      createLoan(req, fakeRepo as any, deviceRepo, {
+        authenticated: true,
+      } as AuthContext)
+    ).rejects.toThrow('Device not found');
+  });
+
+  it('denies loan if device quantity is 0', async () => {
+    const fakeRepo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
+    const req = { id: 'loan-3', deviceId: 'dev-0', deviceName: 'Device C' };
+    const deviceRepo = makeDeviceRepo({
+      ...validDevice,
+      id: 'dev-0',
+      quantity: 0,
+    });
+    await expect(
+      createLoan(req, fakeRepo as any, deviceRepo, {
+        authenticated: true,
+      } as AuthContext)
+    ).rejects.toThrow('Device is not available for loan');
   });
 });
