@@ -6,7 +6,11 @@
     "DEVICE_UPDATED_KEY": "",
     "OAUTH2_JWKS_URI": "",
     "OAUTH2_ISSUER": "",
-    "OAUTH2_AUDIENCE": ""
+    "OAUTH2_AUDIENCE": "",
+    "COSMOS_DB_ENDPOINT": "",
+    "COSMOS_DB_KEY": "",
+    "COSMOS_DB_DATABASE_ID": "loans",
+    "COSMOS_DB_CONTAINER_ID": "loans"
   },
   "ConnectionStrings": {}
 }
