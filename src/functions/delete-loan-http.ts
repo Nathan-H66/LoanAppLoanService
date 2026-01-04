@@ -35,7 +35,7 @@ const deleteLoanHandler = async (
 
 app.http('deleteLoanHttp', {
   methods: ['DELETE'],
-  authLevel: 'function',
+  authLevel: 'anonymous',
   route: 'loans/{id}',
   handler: deleteLoanHandler,
 });

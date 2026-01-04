@@ -1,5 +1,6 @@
 import { CosmosLoanRepo } from '../infra/cosmos-loan-repo';
 import { CosmosDeviceRepo } from '../infra/cosmos-device-repo';
+import { HttpDeviceRepo } from '../infra/http-device-repo';
 import { OAuth2Validator } from '../infra/oauth2-validator';
 
 let cachedLoanRepo: CosmosLoanRepo | null = null;
@@ -21,20 +22,27 @@ export const getLoanRepo = (): CosmosLoanRepo | null => {
   return cachedLoanRepo;
 };
 
-let cachedDeviceRepo: CosmosDeviceRepo | null = null;
-export const getDeviceRepo = (): CosmosDeviceRepo | null => {
+let cachedDeviceRepo: CosmosDeviceRepo | HttpDeviceRepo | null = null;
+export const getDeviceRepo = (): CosmosDeviceRepo | HttpDeviceRepo | null => {
   if (!cachedDeviceRepo) {
-    const endpoint = process.env.COSMOS_DB_ENDPOINT;
-    const key = process.env.COSMOS_DB_KEY;
-    const databaseId = process.env.COSMOS_DB_DATABASE_ID;
-    const containerId = process.env.COSMOS_DB_CONTAINER_ID;
-    if (endpoint && key && databaseId && containerId) {
-      cachedDeviceRepo = new CosmosDeviceRepo({
-        endpoint,
-        key,
-        databaseId,
-        containerId,
-      });
+    // Use Azure microservice for device lookup
+    const baseUrl = process.env.DEVICE_GET_BASE_URL;
+    const apiKey = process.env.DEVICE_GET_KEY;
+    if (baseUrl) {
+      cachedDeviceRepo = new HttpDeviceRepo(baseUrl, apiKey);
+    } else {
+      const endpoint = process.env.COSMOS_DB_ENDPOINT;
+      const key = process.env.COSMOS_DB_KEY;
+      const databaseId = process.env.COSMOS_DB_DATABASE_ID;
+      const containerId = process.env.COSMOS_DB_CONTAINER_ID;
+      if (endpoint && key && databaseId && containerId) {
+        cachedDeviceRepo = new CosmosDeviceRepo({
+          endpoint,
+          key,
+          databaseId,
+          containerId,
+        });
+      }
     }
   }
   return cachedDeviceRepo;

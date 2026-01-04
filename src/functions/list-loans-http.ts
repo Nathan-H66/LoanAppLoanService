@@ -36,7 +36,7 @@ const listLoansHandler = async (
 
 app.http('listLoansHttp', {
   methods: ['GET'],
-  authLevel: 'function',
+  authLevel: 'anonymous',
   route: 'loans',
   handler: listLoansHandler,
 });

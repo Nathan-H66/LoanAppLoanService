@@ -2,7 +2,8 @@ import { app, HttpRequest, HttpResponseInit } from '@azure/functions';
 import { createLoan } from '../app/create-loan';
 import { CosmosLoanRepo } from '../infra/cosmos-loan-repo';
 import { CosmosDeviceRepo } from '../infra/cosmos-device-repo';
-import { OAuth2Validator } from '../infra/oauth2-validator';
+import { getDeviceRepo } from '../config/appServices';
+import { getAuthValidator } from '../config/appServices';
 
 const createLoanHandler = async (
   request: HttpRequest
@@ -32,31 +33,41 @@ const createLoanHandler = async (
       };
     }
 
-    const authValidator = new OAuth2Validator({
-      jwksUri: process.env.OAUTH2_JWKS_URI!,
-      issuer: process.env.OAUTH2_ISSUER!,
-      audience: process.env.OAUTH2_AUDIENCE!,
-    });
-    const authContext = await authValidator.validate(request);
+    const authValidator = getAuthValidator();
+    const authContext = authValidator
+      ? await authValidator.validate(request)
+      : undefined;
     const loanRepo = new CosmosLoanRepo({
       endpoint: process.env.COSMOS_DB_ENDPOINT!,
       key: process.env.COSMOS_DB_KEY!,
       databaseId: process.env.COSMOS_DB_DATABASE_ID || 'loans-db',
       containerId: process.env.COSMOS_DB_CONTAINER_ID || 'loans',
     });
-    const deviceRepo = new CosmosDeviceRepo();
+    const deviceRepo = getDeviceRepo();
+    if (!deviceRepo) {
+      return {
+        status: 500,
+        jsonBody: {
+          success: false,
+          message: 'Device repository not configured.',
+        },
+      };
+    }
     const loan = await createLoan(body, loanRepo, deviceRepo, authContext);
     return {
       status: 201,
       jsonBody: { success: true, data: loan },
     };
   } catch (error) {
+    // Log the full error to the console for debugging
+    console.error('createLoanHandler error:', error);
     return {
       status: 500,
       jsonBody: {
         success: false,
         message: 'Internal server error',
-        error: (error as Error).message,
+        error:
+          error instanceof Error ? error.stack || error.message : String(error),
       },
     };
   }
@@ -64,7 +75,7 @@ const createLoanHandler = async (
 
 app.http('createLoanHttp', {
   methods: ['POST'],
-  authLevel: 'function',
+  authLevel: 'anonymous',
   route: 'create-loan',
   handler: createLoanHandler,
 });

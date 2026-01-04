@@ -1,6 +1,6 @@
 {
-  "id": "loan-123",
-  "deviceId": "dev-001",
-  "deviceName": "Device A",
+  "id": "loan-seed-001",
+  "deviceId": "seed-001",
+  "deviceName": "Google Laptop",
   "user": "user@example.com"
 }
