@@ -23,12 +23,12 @@ const createLoanHandler = async (
     }
 
     const { id, deviceId, deviceName, user } = body;
-    if (!id || !deviceId || !deviceName || !user) {
+    if (!deviceId || !deviceName || !user) {
       return {
         status: 400,
         jsonBody: {
           success: false,
-          message: 'Missing required fields: id, deviceId, deviceName, user',
+          message: 'Missing required fields: deviceId, deviceName, user',
         },
       };
     }
@@ -76,6 +76,6 @@ const createLoanHandler = async (
 app.http('createLoanHttp', {
   methods: ['POST'],
   authLevel: 'anonymous',
-  route: 'create-loan',
+  route: 'loans',
   handler: createLoanHandler,
 });

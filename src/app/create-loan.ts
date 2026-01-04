@@ -28,8 +28,12 @@ export async function createLoan(
     throw new Error('Not authenticated');
   }
   // Validate input fields (simple, same rules as domain)
-  if (!req.id || typeof req.id !== 'string') {
-    throw new Error('Loan id is required and must be a string.');
+  // If id is not provided, generate a random UUID
+  let loanId = req.id;
+  if (!loanId || typeof loanId !== 'string') {
+    loanId = crypto.randomUUID
+      ? crypto.randomUUID()
+      : Math.random().toString(36).substring(2, 15);
   }
   if (!req.deviceId || typeof req.deviceId !== 'string') {
     throw new Error('Device id is required and must be a string.');
@@ -61,7 +65,7 @@ export async function createLoan(
   }
 
   const loan: Loan = Object.freeze({
-    id: req.id,
+    id: loanId,
     deviceId: req.deviceId,
     deviceName: req.deviceName,
     loanStartDate,
