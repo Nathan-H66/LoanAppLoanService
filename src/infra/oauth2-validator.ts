@@ -52,11 +52,8 @@ export class OAuth2Validator {
         audience: this.audience,
       });
 
-      // Extract scopes from token
-      // OAuth2 tokens typically include scopes in the 'scope' claim as a space-separated string
-      // or as a 'scp' claim (Azure AD style) as an array or string
+      // Extract scopes
       let scopes: string[] = [];
-
       if (typeof payload.scope === 'string') {
         scopes = payload.scope.split(' ').filter((s) => s.trim() !== '');
       } else if (typeof payload.scp === 'string') {
@@ -65,10 +62,33 @@ export class OAuth2Validator {
         scopes = payload.scp;
       }
 
+      // Extract permissions (Auth0 standard claim)
+      let permissions: string[] = [];
+      if (Array.isArray(payload.permissions)) {
+        permissions = payload.permissions;
+      }
+
+      // Extract roles (Auth0 custom claim, e.g., https://loanwebappdevnh66store.z33.web.core.windows.net/roles)
+      let roles: string[] = [];
+      if (
+        Array.isArray(
+          payload[
+            'https://loanwebappdevnh66store.z33.web.core.windows.net/roles'
+          ]
+        )
+      ) {
+        roles =
+          payload[
+            'https://loanwebappdevnh66store.z33.web.core.windows.net/roles'
+          ];
+      }
+
       return {
         authenticated: true,
         scopes,
         subject: typeof payload.sub === 'string' ? payload.sub : undefined,
+        permissions,
+        roles,
       };
     } catch (error) {
       // Token validation failed (expired, invalid signature, wrong issuer/audience, etc.)

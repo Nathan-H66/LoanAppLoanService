@@ -37,6 +37,39 @@ const createLoanHandler = async (
     const authContext = authValidator
       ? await authValidator.validate(request)
       : undefined;
+    // Require authentication, permission, and role
+    if (!authContext?.authenticated) {
+      return {
+        status: 401,
+        jsonBody: {
+          success: false,
+          error: 'Unauthorized: authentication required.',
+        },
+      };
+    }
+    const hasCreateLoan =
+      Array.isArray(authContext.permissions) &&
+      authContext.permissions.includes('create:loan');
+    const isStudent =
+      Array.isArray(authContext.roles) && authContext.roles.includes('Student');
+    if (!hasCreateLoan) {
+      return {
+        status: 403,
+        jsonBody: {
+          success: false,
+          error: 'Forbidden: missing create:loan permission.',
+        },
+      };
+    }
+    if (!isStudent) {
+      return {
+        status: 403,
+        jsonBody: {
+          success: false,
+          error: 'Forbidden: Student role required.',
+        },
+      };
+    }
     const loanRepo = new CosmosLoanRepo({
       endpoint: process.env.COSMOS_DB_ENDPOINT!,
       key: process.env.COSMOS_DB_KEY!,

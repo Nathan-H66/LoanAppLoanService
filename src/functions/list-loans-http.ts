@@ -10,6 +10,39 @@ const listLoansHandler = async (
     const authContext = authValidator
       ? await authValidator.validate(request)
       : { authenticated: false, scopes: [] };
+    if (!authContext.authenticated) {
+      return {
+        status: 401,
+        jsonBody: {
+          success: false,
+          error: 'Unauthorized: authentication required.',
+        },
+      };
+    }
+    // Check for required Auth0 permission and role
+    const hasReadLoans =
+      Array.isArray(authContext.permissions) &&
+      authContext.permissions.includes('read:loans');
+    const isStaff =
+      Array.isArray(authContext.roles) && authContext.roles.includes('Staff');
+    if (!hasReadLoans) {
+      return {
+        status: 403,
+        jsonBody: {
+          success: false,
+          error: 'Forbidden: missing read:loans permission.',
+        },
+      };
+    }
+    if (!isStaff) {
+      return {
+        status: 403,
+        jsonBody: {
+          success: false,
+          error: 'Forbidden: Staff role required.',
+        },
+      };
+    }
     const loanRepo = getLoanRepo();
     if (!loanRepo) {
       return {
