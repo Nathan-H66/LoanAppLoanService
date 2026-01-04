@@ -2,7 +2,7 @@ import { app, HttpRequest, HttpResponseInit } from '@azure/functions';
 import { deleteLoan } from '../app/delete-loan';
 import { CosmosLoanRepo } from '../infra/cosmos-loan-repo';
 
-const deleteLoanHandler = async (
+export const deleteLoanHandler = async (
   request: HttpRequest
 ): Promise<HttpResponseInit> => {
   const id = request.params['id'];

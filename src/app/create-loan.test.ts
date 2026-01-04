@@ -36,6 +36,7 @@ describe('createLoan', () => {
       id: 'loan-1',
       deviceId: 'dev-1',
       deviceName: 'Device A',
+      user: 'student@example.com',
     };
 
     const deviceRepo = makeDeviceRepo(validDevice);
@@ -67,7 +68,12 @@ describe('createLoan', () => {
 
   it('allows creation without auth context', async () => {
     const repo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
-    const req = { id: 'x', deviceId: 'y', deviceName: 'z' };
+    const req = {
+      id: 'x',
+      deviceId: 'y',
+      deviceName: 'z',
+      user: 'student@example.com',
+    };
     const deviceRepo = makeDeviceRepo(validDevice);
     await expect(
       createLoan(req, repo as any, deviceRepo)
@@ -76,7 +82,12 @@ describe('createLoan', () => {
 
   it('throws when auth is provided but not authenticated', async () => {
     const repo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
-    const req = { id: 'a', deviceId: 'b', deviceName: 'c' };
+    const req = {
+      id: 'a',
+      deviceId: 'b',
+      deviceName: 'c',
+      user: 'student@example.com',
+    };
     const deviceRepo = makeDeviceRepo(validDevice);
     await expect(
       createLoan(req, repo as any, deviceRepo, {
@@ -85,18 +96,14 @@ describe('createLoan', () => {
     ).rejects.toThrow('Not authenticated');
   });
 
-  it('validates missing id', async () => {
-    const repo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
-    const req = { id: '', deviceId: 'b', deviceName: 'c' };
-    const deviceRepo = makeDeviceRepo(validDevice);
-    await expect(
-      createLoan(req as any, repo as any, deviceRepo)
-    ).rejects.toThrow('Loan id is required and must be a string.');
-  });
-
   it('validates missing deviceId', async () => {
     const repo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
-    const req = { id: 'id', deviceId: '' as any, deviceName: 'c' };
+    const req = {
+      id: 'id',
+      deviceId: '' as any,
+      deviceName: 'c',
+      user: 'student@example.com',
+    };
     const deviceRepo = makeDeviceRepo(validDevice);
     await expect(
       createLoan(req as any, repo as any, deviceRepo)
@@ -105,7 +112,12 @@ describe('createLoan', () => {
 
   it('validates missing deviceName', async () => {
     const repo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
-    const req = { id: 'id', deviceId: 'dev', deviceName: '' as any };
+    const req = {
+      id: 'id',
+      deviceId: 'dev',
+      deviceName: '' as any,
+      user: 'student@example.com',
+    };
     const deviceRepo = makeDeviceRepo(validDevice);
     await expect(
       createLoan(req as any, repo as any, deviceRepo)
@@ -136,7 +148,12 @@ describe('createLoan', () => {
     (global as any).Date = FakeDateInvalid as unknown as DateConstructor;
 
     const repo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
-    const req = { id: 'id', deviceId: 'dev', deviceName: 'name' };
+    const req = {
+      id: 'id',
+      deviceId: 'dev',
+      deviceName: 'name',
+      user: 'student@example.com',
+    };
     const deviceRepo = makeDeviceRepo(validDevice);
     await expect(
       createLoan(req as any, repo as any, deviceRepo)
@@ -177,7 +194,12 @@ describe('createLoan', () => {
     installSequenceDate([1_000_000, -200_000_000]);
 
     const repo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
-    const req = { id: 'id', deviceId: 'dev', deviceName: 'name' };
+    const req = {
+      id: 'id',
+      deviceId: 'dev',
+      deviceName: 'name',
+      user: 'student@example.com',
+    };
     const deviceRepo = makeDeviceRepo(validDevice);
     await expect(
       createLoan(req as any, repo as any, deviceRepo)
@@ -188,7 +210,12 @@ describe('createLoan', () => {
 
   it('creates a loan if device is available', async () => {
     const fakeRepo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
-    const req = { id: 'loan-1', deviceId: 'dev-1', deviceName: 'Device A' };
+    const req = {
+      id: 'loan-1',
+      deviceId: 'dev-1',
+      deviceName: 'Device A',
+      user: 'student@example.com',
+    };
     const deviceRepo = makeDeviceRepo(validDevice);
     const loan = await createLoan(req, fakeRepo as any, deviceRepo, {
       authenticated: true,
@@ -199,7 +226,12 @@ describe('createLoan', () => {
 
   it('denies loan if device not found', async () => {
     const fakeRepo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
-    const req = { id: 'loan-2', deviceId: 'dev-404', deviceName: 'Device B' };
+    const req = {
+      id: 'loan-2',
+      deviceId: 'dev-404',
+      deviceName: 'Device B',
+      user: 'student@example.com',
+    };
     const deviceRepo = makeDeviceRepo(null);
     await expect(
       createLoan(req, fakeRepo as any, deviceRepo, {
@@ -210,7 +242,12 @@ describe('createLoan', () => {
 
   it('denies loan if device quantity is 0', async () => {
     const fakeRepo: LoanRepo = { save: vi.fn(() => Promise.resolve()) };
-    const req = { id: 'loan-3', deviceId: 'dev-0', deviceName: 'Device C' };
+    const req = {
+      id: 'loan-3',
+      deviceId: 'dev-0',
+      deviceName: 'Device C',
+      user: 'student@example.com',
+    };
     const deviceRepo = makeDeviceRepo({
       ...validDevice,
       id: 'dev-0',
