@@ -9,7 +9,7 @@ const healthHandler = async (
       success: true,
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      version: 'v1.1.0',
+      version: 'v1.2.0',
     },
   };
 };
